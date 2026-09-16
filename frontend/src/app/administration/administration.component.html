@@ -23,8 +23,9 @@
 
           <ng-container matColumnDef="email">
             <mat-header-cell *matHeaderCellDef translate></mat-header-cell>
-            <mat-cell *matCellDef="let user" [innerHTML]="user.email" class="cell-middle"></mat-cell>
-          </ng-container>
+          <!-- fixed: was [innerHTML]="user.email", now safe interpolation -->
+            <mat-cell *matCellDef="let user" class="cell-middle">{{ user.email }}</mat-cell>
+          </ng-container>   
 
           <ng-container matColumnDef="user_detail">
             <mat-header-cell *matHeaderCellDef></mat-header-cell>
@@ -110,7 +111,8 @@
 
   <ng-container matColumnDef="email">
     <mat-header-cell *matHeaderCellDef translate></mat-header-cell>
-    <mat-cell *matCellDef="let user" [innerHTML]="user.email" class="cell-middle"></mat-cell>
+    <!-- fixed: was [innerHTML]="user.email", now safe interpolation -->
+    <mat-cell *matCellDef="let user" class="cell-middle">{{ user.email }}</mat-cell>
   </ng-container>
 
   <ng-container matColumnDef="user_detail">

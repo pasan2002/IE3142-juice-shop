@@ -424,6 +424,7 @@ function configureApp (app: ReturnType<typeof express>, seq: typeof sequelize) {
   /* Captcha Bypass challenge verification */
   app.post('/api/Feedbacks', verify.captchaBypassChallenge())
   /* User registration challenge verifications before finale takes over */
+  /*
   app.post('/api/Users', (req: Request, res: Response, next: NextFunction) => {
     if (req.body.email !== undefined && req.body.password !== undefined && req.body.passwordRepeat !== undefined) {
       if (req.body.email.length !== 0 && req.body.password.length !== 0) {
@@ -432,6 +433,30 @@ function configureApp (app: ReturnType<typeof express>, seq: typeof sequelize) {
         req.body.passwordRepeat = req.body.passwordRepeat.trim()
       } else {
         res.status(400).send(res.__('Invalid email/password cannot be empty'))
+      }
+    }
+    next()
+  })
+  */
+  
+  /* User registration challenge verifications before finale takes over */
+  const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/
+
+  app.post('/api/Users', (req: Request, res: Response, next: NextFunction) => {
+    if (req.body.email !== undefined && req.body.password !== undefined && req.body.passwordRepeat !== undefined) {
+      if (req.body.email.length !== 0 && req.body.password.length !== 0) {
+        req.body.email = req.body.email.trim()
+        req.body.password = req.body.password.trim()
+        req.body.passwordRepeat = req.body.passwordRepeat.trim()
+
+        // FIX: reject emails containing HTML/script characters or malformed format
+        if (!emailRegex.test(req.body.email)) {
+          res.status(400).json({ error: 'Invalid email format.' })
+          return
+        }
+      } else {
+        res.status(400).send(res.__('Invalid email/password cannot be empty'))
+        return
       }
     }
     next()
