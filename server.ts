@@ -440,27 +440,62 @@ function configureApp (app: ReturnType<typeof express>, seq: typeof sequelize) {
   */
   
   /* User registration challenge verifications before finale takes over */
-  const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/
-
+  /*
   app.post('/api/Users', (req: Request, res: Response, next: NextFunction) => {
     if (req.body.email !== undefined && req.body.password !== undefined && req.body.passwordRepeat !== undefined) {
       if (req.body.email.length !== 0 && req.body.password.length !== 0) {
         req.body.email = req.body.email.trim()
         req.body.password = req.body.password.trim()
         req.body.passwordRepeat = req.body.passwordRepeat.trim()
-
-        // FIX: reject emails containing HTML/script characters or malformed format
-        if (!emailRegex.test(req.body.email)) {
-          res.status(400).json({ error: 'Invalid email format.' })
-          return
-        }
       } else {
         res.status(400).send(res.__('Invalid email/password cannot be empty'))
-        return
       }
     }
     next()
   })
+  */
+
+  const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/
+
+  app.post('/api/Users', (req: Request, res: Response, next: NextFunction) => {
+    if (
+      typeof req.body.email !== 'string' ||
+      typeof req.body.password !== 'string' ||
+      typeof req.body.passwordRepeat !== 'string'
+    ) {
+      res.status(400).json({ error: 'Invalid registration data.' })
+      return
+    }
+
+    if (req.body.email.length === 0 || req.body.password.length === 0) {
+      res.status(400).send(res.__('Invalid email/password cannot be empty'))
+      return
+    }
+
+    req.body.email = req.body.email.trim()
+    req.body.password = req.body.password.trim()
+    req.body.passwordRepeat = req.body.passwordRepeat.trim()
+
+    // FIX: reject emails containing HTML/script characters or malformed format
+    if (!emailRegex.test(req.body.email)) {
+      res.status(400).json({ error: 'Invalid email format.' })
+      return
+    }
+
+    next()
+  })
+
+  app.post('/api/Users', (req: Request, res: Response, next: NextFunction) => {
+    if (req.body?.role !== undefined) {
+      res.status(400).json({
+        error: 'Role cannot be specified during public registration.'
+      })
+      return
+    }
+
+    next()
+  })
+
   app.post('/api/Users', verify.registerAdminChallenge())
   app.post('/api/Users', verify.passwordRepeatChallenge()) // vuln-code-snippet hide-end
   app.post('/api/Users', verify.emptyUserRegistration())
