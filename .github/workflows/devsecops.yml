@@ -47,6 +47,7 @@ jobs:
         with:
           name: semgrep-results
           path: semgrep-results.json
+
   #GATE 2 - Dependency / SCA: npm audit (Managed by IT24100258)
   dependency-scan:
     name: "Gate 2 - Dependency / SCA: npm audit"
@@ -93,7 +94,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
 
-# Build Docker with runner swap space
+  # Build Docker with runner swap space
   build-docker:
     name: "Build Docker Image"
     runs-on: ubuntu-latest
@@ -136,7 +137,7 @@ jobs:
           path: /tmp/image.tar
           retention-days: 1
 
-# GATE 4 — Container image scanning: Trivy (Managed by IT24100258)
+  # GATE 4 — Container image scanning: Trivy (Managed by IT24100258)
   container-scan:
     name: "Gate 4 · Container Scan (Trivy)"
     runs-on: ubuntu-latest
@@ -185,22 +186,9 @@ jobs:
           sarif_file: trivy-results.sarif
         continue-on-error: true
 
-# SUMMARY — Final status evaluation
-  pipeline-status:
-    name: "Pipeline Summary"
-    runs-on: ubuntu-latest
-    needs: [sast-semgrep, dependency-scan, container-scan]
-    if: always()
-    steps:
-      - name: "Check gate status"
-        run: |
-          echo "SAST Scan: ${{ needs.sast-semgrep.result }}"
-          echo "Dependency Scan: ${{ needs.dependency-scan.result }}"
-          echo "Container Scan:  ${{ needs.container-scan.result }}"
-
-# ─────────────────────────────────────────────────────────────────
-# GATE 5 — DAST: OWASP ZAP Baseline Scan (Managed by IT24100239)
-# ─────────────────────────────────────────────────────────────────
+  # ─────────────────────────────────────────────────────────────────
+  # GATE 5 — DAST: OWASP ZAP Baseline Scan (Managed by IT24100239)
+  # ─────────────────────────────────────────────────────────────────
   dast-zap-scan:
     name: "Gate 5 · DAST - OWASP ZAP Baseline Scan"
     runs-on: ubuntu-latest
@@ -267,3 +255,17 @@ jobs:
         run: |
           docker stop juice-shop-dast || true
           docker rm juice-shop-dast || true
+
+  # SUMMARY — Final status evaluation
+  pipeline-status:
+    name: "Pipeline Summary"
+    runs-on: ubuntu-latest
+    needs: [sast-semgrep, dependency-scan, secrets-scan, container-scan]
+    if: always()
+    steps:
+      - name: "Check gate status"
+        run: |
+          echo "SAST Scan:       ${{ needs.sast-semgrep.result }}"
+          echo "Dependency Scan: ${{ needs.dependency-scan.result }}"
+          echo "Secrets Scan:    ${{ needs.secrets-scan.result }}"
+          echo "Container Scan:  ${{ needs.container-scan.result }}"
